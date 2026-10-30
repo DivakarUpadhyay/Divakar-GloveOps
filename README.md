@@ -64,9 +64,20 @@ Different SQL Server? Set the connection string:
 
 Tests: `dotnet test` (26 tests: rules, approval service, n8n notifier, and end-to-end stored-procedure tests that skip if the database isn't available).
 
-**End-to-end test in a visible Chrome window:** `run-e2e.bat`. Playwright for .NET drives your installed Google Chrome (no browser download) with a fresh temporary profile. It resets the demo database, starts the app on port 5081, and runs two stories:
-1. **Large request:** login page styled before sign-in → dashboard → client-side validation (qty 0) → jQuery route hint adds the Plant Manager → submit → Kevin's send back is refused without a comment, then accepted → Anna edits and resubmits → Kevin, Grace and the Tainan plant manager approve → audit trail → integration log → approved list.
-2. **Delegation:** Kevin delegates to Mei → Mei sees "for Kevin Chen" tasks → approves on his behalf.
+**End-to-end test in a visible Chrome window:** `run-e2e.bat`. Playwright for .NET drives your installed Google Chrome (no browser download) with a fresh temporary profile. It resets the demo database, starts the app on port 5081, and runs 10 browser tests:
+
+| Test | Checks |
+|---|---|
+| Large request flow | login styled before sign-in → client validation → route hint adds the Plant Manager → send back refused without a comment → resubmit → 3 approvals (plant manager of the product's plant) → audit trail → integration log |
+| Delegation | Kevin delegates to Mei → Mei approves "for Kevin Chen" |
+| Reject | comment required → Rejected, step marked red → applicant can't edit or resubmit |
+| Draft | Save draft → Submit from the details page (AJAX) |
+| Permissions | another sales rep sees no Edit button; the Edit URL is refused |
+| List | server search, "Mine only", jQuery quick filter |
+| Delegation form | can't pick yourself; missing delegate (client) and end date before start (server) are refused |
+| n8n callback API | no key / wrong key → 401; correct key → 200 and logged as Received |
+| Unicode | Chinese + Vietnamese text saved, shown and round-tripped through Edit |
+| Phone screen (390 px) | collapsed menu opens on tap; no page scrolls sideways |
 
 Each step saves a screenshot to [`docs/screenshots/`](docs/screenshots). The app and Chrome are closed afterwards. E2E tests are opt-in (`GLOVEOPS_E2E=1`), so a plain `dotnet test` and the GitHub build skip them. Add `GLOVEOPS_E2E_HEADLESS=1` to run without a window.
 

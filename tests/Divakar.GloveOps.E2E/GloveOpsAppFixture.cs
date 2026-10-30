@@ -20,6 +20,8 @@ public sealed class E2EFactAttribute : FactAttribute
 public sealed class GloveOpsAppFixture : IAsyncLifetime
 {
     public const string BaseUrl = "http://localhost:5081";
+    /// <summary>n8n shared key the app is started with, so the callback API can be tested.</summary>
+    public const string N8nSharedKey = "e2e-shared-key";
     public static readonly string RepoRoot = FindRepoRoot();
     public static readonly string ScreenshotDir = Path.Combine(RepoRoot, "docs", "screenshots");
 
@@ -47,6 +49,7 @@ public sealed class GloveOpsAppFixture : IAsyncLifetime
         start.Environment["ASPNETCORE_URLS"] = BaseUrl;
         start.Environment["ASPNETCORE_ENVIRONMENT"] = "Development";
         start.Environment["N8n__WebhookUrl"] = "";   // keep the demo independent of a local n8n
+        start.Environment["N8n__SharedKey"] = N8nSharedKey;
         _app = Process.Start(start)!;
         _app.OutputDataReceived += (_, _) => { };
         _app.ErrorDataReceived += (_, _) => { };
