@@ -480,3 +480,6 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+
+# The template ignores *.e2e (matches this folder on case-insensitive Windows)
+!/tests/Divakar.GloveOps.E2E/
