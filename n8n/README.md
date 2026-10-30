@@ -1,5 +1,41 @@
 # n8n workflows
 
+## What is n8n?
+**n8n** (say "n-eight-n", short for *nodemation*: node + automation) is an **open-source workflow automation tool**. You connect apps and services by dragging **nodes** onto a canvas and linking them into a **workflow**. It works like Zapier or Make, but you can **self-host** it on your own server or PC, so company data never leaves your network.
+
+Every workflow has:
+- **Trigger node**: what starts it. Examples: a **Webhook** (another system calls a URL), a **Schedule** (cron, e.g. every day at 08:00), a new email, a new database row, a form.
+- **Action nodes**: what it does. Examples: **HTTP Request** (call any REST API, Representational State Transfer), **Microsoft SQL**, Email, Microsoft Teams, Slack, Telegram, Google Sheets, OpenAI/AI Agent.
+- **Logic nodes**: **IF**, **Switch**, **Merge**, **Loop**, and **Code** (JavaScript/Python) for custom logic.
+- **Credentials**: passwords and API keys stored encrypted, not inside the workflow.
+- **Executions**: a log of every run with each node's input and output, so debugging is easy.
+
+## Why companies use it
+- **Glue between systems:** connect BPM (Business Process Management), SQL Server, SAP, email and Teams without writing and deploying a new C# service each time.
+- **Self-hosted:** data stays inside the company. This matters for medical, finance and HR data.
+- **Fast to build and change:** a new integration takes hours, not weeks, and other IT staff can read the visual flow.
+- **AI-ready:** built-in LLM (Large Language Model) and AI Agent nodes, and it can call Dify or OpenAI.
+- **Free and open source:** the community edition costs nothing; you pay only for the server.
+
+## Typical uses (at a manufacturer like a glove company)
+| Use | Flow |
+|---|---|
+| Approval notification | BPM form approved → webhook → n8n → write log to SQL → notify the plant on Teams/email |
+| Daily report | Schedule 08:00 → SQL query of yesterday's output and defects → HTML table → email managers |
+| System sync | Nightly: copy new customers/products from ERP (Enterprise Resource Planning, e.g. SAP) API → internal SQL database |
+| Order intake | New email with PO (Purchase Order) PDF → AI extracts fields → create a draft order → alert sales |
+| Alerts | Every 15 min: check defect rate > 2% or machine downtime → Teams/LINE alert to QA |
+| AI helper | New sample request → call Dify → suggest the right glove model → add as a comment |
+
+## n8n vs RPA vs C# (when to use which)
+| Tool | Best for |
+|---|---|
+| **n8n** | API-to-API integration, notifications, scheduled jobs, quick automations |
+| **RPA (Robotic Process Automation, e.g. Automation 360)** | systems with **no API**, where a bot must click the screen (SAP GUI, old portals) |
+| **C# / .NET** | core business logic, complex rules, high volume, anything that needs unit tests |
+
+## Workflows in this folder
+
 | File | Trigger | What it does | Needs credentials? |
 |---|---|---|---|
 | `01-approval-notification.json` | **Webhook** `POST /webhook/gloveops-approved` (called by GloveOps on final approval) | checks the shared key → builds the plant message → **calls back** GloveOps (`/api/integrations/n8n-callback`) → responds `{ok:true}`. An Email node is included but disabled | No (email optional) |
