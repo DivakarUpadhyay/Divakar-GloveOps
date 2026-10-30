@@ -1,5 +1,49 @@
 # Automation 360 bot — `GloveOps_SampleRequestEntry`
 
+## What is Automation 360?
+**Automation 360** (A360) is the cloud **RPA (Robotic Process Automation)** platform from **Automation Anywhere**. RPA means **software robots ("bots") that use applications the way a person does**: open programs, click buttons, type into fields, read screens, copy data between Excel, websites and ERP (Enterprise Resource Planning) systems such as SAP, download files and send emails.
+
+Main parts:
+- **Control Room:** web portal where you build, schedule, run and monitor bots, and manage users and licences.
+- **Bot Agent:** a small program on the PC or VM (Virtual Machine) where the bot actually runs.
+- **Bot Editor:** drag-and-drop **actions** grouped in packages: Excel, CSV, Browser, Recorder (click and type on screen elements), Email, Loop, If, Error handler, PDF, SAP, REST Web Service, Database.
+- **Task Bot:** one automation, the basic unit.
+- **Attended bot:** runs on a user's PC when the user starts it. **Unattended bot:** runs by schedule on a server with no one watching.
+- **Credential Vault:** stores passwords securely, so they're never written in the bot.
+- **Document Automation (IQ Bot):** reads invoices, POs (Purchase Orders) and forms from PDFs or scans with AI.
+
+## Why companies use it
+- Many systems (SAP GUI, Graphical User Interface, old web portals, bank and customs sites) have **no API**. A bot is the only way to automate them without changing the system.
+- Repetitive data entry wastes staff hours and causes typing mistakes. Bots work 24/7 and don't make typos.
+- **Fast value:** a bot can be built in days, much faster than a full system integration.
+- Audit logs show what each bot did and when.
+- **Weak point:** bots break when the screen changes, so prefer an API or database integration when one exists.
+
+## Typical uses (at a manufacturer like a glove company)
+| Use | What the bot does |
+|---|---|
+| Sales order entry | Reads customer POs from Excel or email, then types them into SAP |
+| Finance | Downloads bank statements and exchange rates daily, then uploads them to the accounting system |
+| Multi-plant reporting | Opens Excel reports from 6 plants, then merges them and emails one file |
+| Logistics | Checks shipping-line websites for container ETA (Estimated Time of Arrival), then updates the order system |
+| Invoices | Document Automation reads supplier invoice PDFs, then posts them in ERP |
+| HR | Creates accounts for new employees in several systems |
+
+## When to use RPA vs other options
+| Option | Best for |
+|---|---|
+| **RPA (Automation 360)** | systems with **no API**, where a bot must use the screen |
+| **n8n** | systems that have APIs: integration, notifications, scheduled jobs |
+| **C# / .NET** | core business logic, high volume, complex rules |
+
+## Where it's used
+**In GloveOps:**
+- The bot enters the 20 rows of `SampleRequests.csv` through the **New sample request** web form (`/SampleRequests/Create`). This simulates a system without an API.
+- Bot-friendly element IDs were added for it: `CustomerId`, `ProductId`, `Size`, `Qty`, `RequiredDate`, `Purpose`, the submit button `btn-save-submit`, and `request-no` on the confirmation page.
+- Row 17 is invalid on purpose, to show the bot's **Try/Catch** error handling.
+
+**In real companies:** finance (bank files, invoices), sales operations (order entry into SAP), logistics (tracking portals), HR onboarding, and IT (account creation). It usually runs as unattended bots on dedicated VMs.
+
 **Story:** the sales team receives sample requests in a spreadsheet. Instead of typing 20 rows by hand, an RPA (Robotic Process Automation) bot enters each row into the GloveOps web form, the way a person would. This is how you'd automate a system **without an API**, such as SAP GUI screens or a vendor portal.
 
 Input: [`SampleRequests.csv`](SampleRequests.csv). It has 20 rows, and row 17 is deliberately invalid (qty 0) to show error handling.

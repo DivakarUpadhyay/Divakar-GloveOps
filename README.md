@@ -50,6 +50,9 @@ Sales ──submit──► 1. Sales Manager ──► 2. QA spec check ──�
 | Dify | `dify/`: knowledge base files, prompt, C# API client, Ask AI page |
 | Documentation | this README + one README per tool folder |
 
+### Tool guides (definition, uses, where used)
+[BPM](docs/BPM.md) · [Automation 360](automation360/README.md) · [Power BI](powerbi/README.md) · [n8n](n8n/README.md) · [Dify](dify/README.md) · [Git](docs/Git.md)
+
 ## Run it locally
 Requirements: .NET 10 SDK (Software Development Kit), SQL Server (instance `DIVAKARLAPTOP\DEVELOPERMSSQL`, Windows sign-in).
 ```bat

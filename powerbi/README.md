@@ -1,5 +1,51 @@
 # Power BI report — `GloveOps Plant & Sales.pbix`
 
+## What is Power BI?
+**Power BI** is Microsoft's **BI (Business Intelligence)** tool for turning data into **interactive dashboards and reports**. Users click charts to filter, drill down from year to month to day, and view reports in the browser, in Teams or on a phone.
+
+Main parts:
+- **Power BI Desktop** (free, Windows): connect to data, model it, design reports. Files are saved as `.pbix`.
+- **Power BI Service** (cloud, app.powerbi.com): publish, share, schedule refresh, dashboards, apps.
+- **Power Query (M language):** clean and shape data (rename, merge, filter, change types).
+- **Data model:** tables and relationships, ideally a **star schema** (fact tables of numbers + dimension tables such as date, product and plant).
+- **DAX (Data Analysis Expressions):** the formula language for **measures** (KPIs, Key Performance Indicators), e.g. defect rate or year-over-year sales.
+- **Connection modes:** **Import** (data is copied into Power BI: fast, refreshed on schedule), **DirectQuery** (queries the source live: always current, slower), Live connection.
+- **RLS (Row-Level Security):** each user sees only their own rows, e.g. their own plant.
+- **On-premises data gateway:** lets the cloud refresh data from an internal SQL Server.
+
+## Why companies use it
+- Management wants **one live view** of sales, production, quality and inventory instead of many Excel files emailed around.
+- **Self-service:** users filter and explore without asking IT for a new report each time.
+- Fits Microsoft environments (Excel, Teams, SQL Server, Microsoft 365 licences).
+- **Security built in:** RLS, workspace permissions, sharing controls.
+- Scheduled refresh means reports stay up to date automatically.
+
+## Typical uses (at a manufacturer like a glove company)
+| Report | KPIs |
+|---|---|
+| Executive overview | Sales YTD (Year to Date), growth vs last year, sales by country and customer |
+| Production | Output per plant and line, OEE (Overall Equipment Effectiveness), downtime |
+| Quality | Defect / AQL (Acceptable Quality Limit) failure rate by plant, line and product |
+| Supply chain | On-time delivery, inventory days, raw-material cost (NBR, PVC) |
+| Sales operations | Sample-request volume, approval lead time, conversion to orders |
+| HR / finance | Headcount, overtime, cost per box |
+
+## When to use Power BI vs other options
+| Option | Best for |
+|---|---|
+| **Power BI** | interactive dashboards for managers, self-service analysis, many data sources |
+| **SSRS (SQL Server Reporting Services) / Excel** | fixed, printable, pixel-perfect reports |
+| **Charts inside the MVC app** | small operational widgets that users need right inside their workflow |
+
+## Where it's used
+**In GloveOps:**
+- **Data source:** the `bi` schema in the `DivakarGloveOps` database, built by `database/04_bi_star_schema.sql` (production facts, sales facts, date/plant/product/customer dimensions, and a `UserPlant` table for RLS).
+- **Live link to the app:** the `bi.vSampleRequest` view lets the report show approval lead times from GloveOps.
+- **Measures:** `measures.dax` in this folder.
+- The app's own **Dashboard** page shows a few quick KPIs. Full analytics belong in Power BI.
+
+**In real companies:** management dashboards in Teams or the Power BI Service, plant-floor TV dashboards, monthly board reports, and reports embedded in internal web portals with Power BI Embedded.
+
 The database already contains a **star schema** in the `bi` schema (built by `database/04_bi_star_schema.sql`, all data fictional):
 
 | Table | Type | Rows | Grain |

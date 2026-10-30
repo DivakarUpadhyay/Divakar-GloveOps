@@ -34,6 +34,15 @@ Every workflow has:
 | **RPA (Robotic Process Automation, e.g. Automation 360)** | systems with **no API**, where a bot must click the screen (SAP GUI, old portals) |
 | **C# / .NET** | core business logic, complex rules, high volume, anything that needs unit tests |
 
+## Where it's used
+**In GloveOps:**
+- **Outbound:** when a request gets its final approval, `ApprovalService` → `N8nWorkflowNotifier` (`Core/Integrations/Integrations.cs`) POSTs the request as JSON to the n8n webhook with the `X-GloveOps-Key` header. Failures are logged, never thrown.
+- **Inbound:** n8n calls back `POST /api/integrations/n8n-callback` (`Program.cs`), which checks the shared key.
+- **Integrations page:** both directions appear in the integration log (`IntegrationLog` table).
+- **Daily report:** workflow 02 reads the `bi` schema in SQL Server directly.
+
+**In real companies:** connecting BPM, ERP, CRM (Customer Relationship Management), email and chat tools; scheduled reports and data syncs; alerting; and AI automations. It usually runs self-hosted on a company server or in Docker.
+
 ## Workflows in this folder
 
 | File | Trigger | What it does | Needs credentials? |
