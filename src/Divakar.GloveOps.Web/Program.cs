@@ -3,9 +3,11 @@ using System.Text;
 using System.Text.Json.Serialization;
 using Divakar.GloveOps.Core.Data;
 using Divakar.GloveOps.Core.Integrations;
+using Divakar.GloveOps.Core.MasterData;
 using Divakar.GloveOps.Core.Workflow;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -20,6 +22,10 @@ builder.Services.AddScoped<IIntegrationLogRepository, IntegrationLogRepository>(
 builder.Services.AddScoped<ApprovalService>();
 builder.Services.AddSingleton(TimeProvider.System);
 
+// ---- master data (EF Core, database-first: the SQL scripts own the schema) ----
+builder.Services.AddDbContext<GloveOpsDbContext>(o => o.UseSqlServer(connectionString));
+builder.Services.AddScoped<MasterDataService>();
+
 // ---- integrations (n8n, Dify) ----
 builder.Services.Configure<N8nOptions>(builder.Configuration.GetSection("N8n"));
 builder.Services.Configure<DifyOptions>(builder.Configuration.GetSection("Dify"));
@@ -31,7 +37,7 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     .AddCookie(o =>
     {
         o.LoginPath = "/Account/Login";
-        o.AccessDeniedPath = "/Account/Login";
+        o.AccessDeniedPath = "/Account/Denied";
         o.ExpireTimeSpan = TimeSpan.FromHours(8);
         o.SlidingExpiration = true;
     });

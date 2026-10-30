@@ -39,6 +39,8 @@ public class AccountController(ILookupRepository lookups) : Controller
         return Url.IsLocalUrl(returnUrl) ? Redirect(returnUrl) : RedirectToAction("Index", "Home");
     }
 
+    public IActionResult Denied() => View();
+
     [HttpPost]
     public async Task<IActionResult> Logout()
     {

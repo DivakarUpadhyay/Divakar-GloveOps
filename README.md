@@ -1,7 +1,7 @@
 # Divakar GloveOps
 
 **A sample-request and approval portal for a disposable-glove manufacturer**, built by **Divakar Upadhyay** as a portfolio demo of an internal IT (MIS, Management Information Systems) toolset:
-**ASP.NET Core MVC (Model–View–Controller) · Dapper · SQL Server stored procedures · jQuery · Git**, integrated with a **BPM-style (Business Process Management) approval engine, n8n, Dify (LLM, Large Language Model), Automation 360 (RPA, Robotic Process Automation) and Power BI (Business Intelligence)**.
+**ASP.NET Core MVC (Model–View–Controller) · Dapper · Entity Framework Core · SQL Server stored procedures · jQuery · Git**, integrated with a **BPM-style (Business Process Management) approval engine, n8n, Dify (LLM, Large Language Model), Automation 360 (RPA, Robotic Process Automation) and Power BI (Business Intelligence)**.
 
 > All companies, customers, products and figures are fictional demo data.
 
@@ -39,7 +39,8 @@ Sales ──submit──► 1. Sales Manager ──► 2. QA spec check ──�
 |---|---|
 | C# generics, inheritance, OOP | `DapperRepository` base class with generic `RunAsync<T>`; records; interfaces + DI (Dependency Injection) |
 | MS SQL stored procedures | `database/02_procedures.sql`: transactional approval engine, `THROW` business rules, `UPDLOCK`, `ROWVERSION`, conditional routing via `FlowStep.MinQty` |
-| Dapper + ORM (Object-Relational Mapping) | `Core/Data/Repositories.cs`: `DynamicParameters` with OUTPUT params, `QueryMultiple` (3 result sets), SQL errors → `BusinessRuleException` |
+| Dapper (micro-ORM) | `Core/Data/Repositories.cs`: `DynamicParameters` with OUTPUT params, `QueryMultiple` (3 result sets), SQL errors → `BusinessRuleException` |
+| ORM (Object-Relational Mapping): **EF Core** | `Core/MasterData/`: **Admin → Customers & Products** (Admin role only). `DbContext` with Fluent API mapping of the existing tables (database-first, no migrations), LINQ projections with `AsNoTracking`, generic `ToPagedAsync<T>` paging, change tracking, **optimistic concurrency** via `ROWVERSION`, safe delete (blocked when sample requests use the record), unique-SKU check |
 | .NET Core MVC | Controllers, view models, DataAnnotations + server-side rules, PRG (Post/Redirect/Get) pattern, TempData, cookie authentication, global anti-forgery |
 | jQuery | AJAX approve/reject with anti-forgery header, live approval-route hint, quick table filter, chat UI |
 | Git | this repo, plus GitHub Actions build & test (`.github/workflows/build.yml`) |
@@ -62,9 +63,9 @@ start-gloveops.bat        :: builds and opens http://localhost:5080
 Different SQL Server? Set the connection string:
 `dotnet user-secrets set "ConnectionStrings:GloveOps" "Server=...;Database=DivakarGloveOps;..." --project src/Divakar.GloveOps.Web`
 
-Tests: `dotnet test` (26 tests: rules, approval service, n8n notifier, and end-to-end stored-procedure tests that skip if the database isn't available).
+Tests: `dotnet test` (33 tests: rules, approval service, n8n notifier, stored-procedure workflow and EF Core master-data tests; database tests skip if the database isn't available).
 
-**End-to-end test in a visible Chrome window:** `run-e2e.bat`. Playwright for .NET drives your installed Google Chrome (no browser download) with a fresh temporary profile. It resets the demo database, starts the app on port 5081, and runs 10 browser tests:
+**End-to-end test in a visible Chrome window:** `run-e2e.bat`. Playwright for .NET drives your installed Google Chrome (no browser download) with a fresh temporary profile. It resets the demo database, starts the app on port 5081, and runs 15 browser tests:
 
 | Test | Checks |
 |---|---|
@@ -78,6 +79,11 @@ Tests: `dotnet test` (26 tests: rules, approval service, n8n notifier, and end-t
 | n8n callback API | no key / wrong key → 401; correct key → 200 and logged as Received |
 | Unicode | Chinese + Vietnamese text saved, shown and round-tripped through Edit |
 | Phone screen (390 px) | collapsed menu opens on tap; no page scrolls sideways |
+| Admin access (EF Core) | non-admin gets "Access denied" and no Admin menu |
+| Admin customer (EF Core) | create → search → Sales sees it in the request form (read by Dapper) → edit → delete |
+| Safe delete | a customer with sample requests can't be deleted |
+| Duplicate SKU | `nbr-ex-100` refused because `NBR-EX-100` exists |
+| Concurrency | two tabs edit one product: the second save is refused ("Someone else changed…") |
 
 Each step saves a screenshot to [`docs/screenshots/`](docs/screenshots). The app and Chrome are closed afterwards. E2E tests are opt-in (`GLOVEOPS_E2E=1`), so a plain `dotnet test` and the GitHub build skip them. Add `GLOVEOPS_E2E_HEADLESS=1` to run without a window.
 
@@ -98,7 +104,7 @@ Optional integrations (keys go in **user secrets**, never in Git): see [`n8n/REA
 ## Project layout
 ```
 database/        01 schema · 02 procedures · 03 seed · 04 Power BI star schema · 00 run-all
-src/Divakar.GloveOps.Core/   Models · Workflow (rules, ApprovalService) · Data (Dapper) · Integrations (n8n, Dify)
+src/Divakar.GloveOps.Core/   Models · Workflow (rules, ApprovalService) · Data (Dapper) · MasterData (EF Core) · Integrations (n8n, Dify)
 src/Divakar.GloveOps.Web/    MVC controllers, Razor views, jQuery (wwwroot/js/site.js)
 tests/Divakar.GloveOps.Tests/  xUnit: unit + database tests
 tests/Divakar.GloveOps.E2E/    Playwright browser tests (run-e2e.bat), screenshots in docs/screenshots
@@ -106,6 +112,7 @@ n8n/ · dify/ · automation360/ · powerbi/   one folder per integration, each w
 ```
 
 ## Design decisions (good interview talking points)
+- **Two data-access styles on purpose:** EF Core for simple master-data screens (productive, LINQ, change tracking, concurrency); Dapper + stored procedures for the transactional approval engine (full SQL control, one round trip, set-based logic).
 - **State changes live in stored procedures**, each in one transaction with an audit row. Dapper keeps the C# side thin and fast.
 - **Concurrency:** `UPDATE … WHERE Status='Pending' AND (ApproverId=@u OR DelegateId=@u)` plus a `@@ROWCOUNT` check means two clicks or two approvers can't both act.
 - **Data-driven routing:** adding a step or changing the 10,000-box threshold is a `FlowStep` row change, not a code change.

@@ -1,0 +1,38 @@
+@model PagedResult<CustomerRow>
+@{
+    ViewData["Title"] = "Customers";
+    string search = ViewBag.Search ?? "";
+}
+
+<partial name="_AdminTabs" />
+
+<div class="card p-3">
+    <div class="d-flex flex-wrap gap-2 justify-content-between mb-2">
+        <form method="get" class="d-flex gap-2">
+            <input name="search" value="@search" class="form-control form-control-sm" placeholder="Name or country" />
+            <button class="btn btn-sm btn-outline-primary">Search</button>
+        </form>
+        <a asp-action="EditCustomer" class="btn btn-sm btn-primary" id="btn-new-customer">+ New customer</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" id="customers">
+            <thead class="table-light"><tr><th>Name</th><th>Country</th><th class="text-end">Sample requests</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var c in Model.Items)
+            {
+                <tr>
+                    <td>@c.Name</td>
+                    <td>@c.Country</td>
+                    <td class="text-end">@c.RequestCount</td>
+                    <td class="text-end"><a asp-action="EditCustomer" asp-route-id="@c.CustomerId" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+                </tr>
+            }
+            @if (Model.Items.Count == 0)
+            {
+                <tr><td colspan="4" class="text-center text-muted py-4">No customers match.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="@(new PagerViewModel(Model.Page, Model.TotalPages, Model.TotalCount, "Customers", new() { ["search"] = search }))" />
+</div>

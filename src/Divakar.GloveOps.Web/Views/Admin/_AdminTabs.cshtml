@@ -1,0 +1,9 @@
+@{ var act = ViewContext.RouteData.Values["action"]?.ToString() ?? ""; }
+<div class="mb-3">
+    <h1 class="h3 mb-0">Master data</h1>
+    <div class="small text-muted">Admin only · managed with <b>Entity Framework Core</b> (the approval workflow uses Dapper + stored procedures)</div>
+</div>
+<ul class="nav nav-tabs mb-3">
+    <li class="nav-item"><a class="nav-link @(act.Contains("Customer") ? "active" : "")" asp-action="Customers">Customers</a></li>
+    <li class="nav-item"><a class="nav-link @(act.Contains("Product") ? "active" : "")" asp-action="Products">Products</a></li>
+</ul>

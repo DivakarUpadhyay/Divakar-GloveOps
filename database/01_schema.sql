@@ -26,13 +26,15 @@ CREATE TABLE dbo.Product (
     Name        NVARCHAR(150) NOT NULL,
     Material    VARCHAR(10)   NOT NULL CHECK (Material IN ('NBR','PVC','TPE','LATEX')),
     Category    NVARCHAR(50)  NOT NULL,          -- Medical, Food, Cleanroom, Industrial
-    PlantId     INT NOT NULL REFERENCES dbo.Plant(PlantId)
+    PlantId     INT NOT NULL REFERENCES dbo.Plant(PlantId),
+    RowVer      ROWVERSION                    -- optimistic concurrency (EF Core admin pages)
 );
 
 CREATE TABLE dbo.Customer (
     CustomerId INT IDENTITY PRIMARY KEY,
     Name       NVARCHAR(150) NOT NULL,
-    Country    NVARCHAR(50)  NOT NULL
+    Country    NVARCHAR(50)  NOT NULL,
+    RowVer     ROWVERSION                     -- optimistic concurrency (EF Core admin pages)
 );
 
 CREATE TABLE dbo.AppUser (

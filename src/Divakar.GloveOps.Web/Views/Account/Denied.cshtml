@@ -1,0 +1,7 @@
+@{ ViewData["Title"] = "Access denied"; }
+
+<div class="card p-4" style="max-width:560px">
+    <h1 class="h4">Access denied</h1>
+    <p class="mb-3">Your role (<b>@User.RoleName()</b>) can't open this page. Master data is managed by an <b>Admin</b>.</p>
+    <a asp-controller="Home" asp-action="Index" class="btn btn-primary">Back to dashboard</a>
+</div>

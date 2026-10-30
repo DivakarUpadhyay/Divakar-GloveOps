@@ -89,3 +89,9 @@ public static class StatusUi
         _ => status
     };
 }
+
+/// <summary>Previous/Next pager for list pages; RouteValues keeps the current filters.</summary>
+public record PagerViewModel(int Page, int TotalPages, int TotalCount, string Action, Dictionary<string, string> RouteValues)
+{
+    public Dictionary<string, string> For(int page) => new(RouteValues) { ["page"] = page.ToString() };
+}

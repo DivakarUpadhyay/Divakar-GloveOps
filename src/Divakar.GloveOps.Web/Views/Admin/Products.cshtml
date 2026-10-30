@@ -1,0 +1,49 @@
+@model PagedResult<ProductRow>
+@{
+    ViewData["Title"] = "Products";
+    string search = ViewBag.Search ?? "";
+    string material = ViewBag.Material ?? "";
+}
+
+<partial name="_AdminTabs" />
+
+<div class="card p-3">
+    <div class="d-flex flex-wrap gap-2 justify-content-between mb-2">
+        <form method="get" class="d-flex gap-2">
+            <input name="search" value="@search" class="form-control form-control-sm" placeholder="SKU or name" />
+            <select name="material" class="form-select form-select-sm" style="width:auto">
+                <option value="">All materials</option>
+                @foreach (var m in Materials.All)
+                {
+                    <option value="@m" selected="@(m == material)">@m</option>
+                }
+            </select>
+            <button class="btn btn-sm btn-outline-primary">Filter</button>
+        </form>
+        <a asp-action="EditProduct" class="btn btn-sm btn-primary" id="btn-new-product">+ New product</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" id="products">
+            <thead class="table-light"><tr><th>SKU</th><th>Name</th><th>Material</th><th>Category</th><th>Plant</th><th class="text-end">Requests</th><th></th></tr></thead>
+            <tbody>
+            @foreach (var p in Model.Items)
+            {
+                <tr>
+                    <td class="fw-semibold">@p.Sku</td>
+                    <td>@p.Name</td>
+                    <td>@p.Material</td>
+                    <td>@p.Category</td>
+                    <td>@p.PlantName</td>
+                    <td class="text-end">@p.RequestCount</td>
+                    <td class="text-end"><a asp-action="EditProduct" asp-route-id="@p.ProductId" class="btn btn-sm btn-outline-secondary">Edit</a></td>
+                </tr>
+            }
+            @if (Model.Items.Count == 0)
+            {
+                <tr><td colspan="7" class="text-center text-muted py-4">No products match.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pager" model="@(new PagerViewModel(Model.Page, Model.TotalPages, Model.TotalCount, "Products", new() { ["search"] = search, ["material"] = material }))" />
+</div>

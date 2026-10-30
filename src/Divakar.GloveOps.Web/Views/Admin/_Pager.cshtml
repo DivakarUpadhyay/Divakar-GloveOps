@@ -1,0 +1,12 @@
+@model PagerViewModel
+<div class="d-flex justify-content-between align-items-center mt-2 small">
+    <span class="text-muted" id="pager-info">@Model.TotalCount record(s) · page @Model.Page of @Model.TotalPages</span>
+    <ul class="pagination pagination-sm mb-0">
+        <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+            <a class="page-link" asp-action="@Model.Action" asp-all-route-data="@Model.For(Model.Page - 1)">Previous</a>
+        </li>
+        <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+            <a class="page-link" asp-action="@Model.Action" asp-all-route-data="@Model.For(Model.Page + 1)">Next</a>
+        </li>
+    </ul>
+</div>

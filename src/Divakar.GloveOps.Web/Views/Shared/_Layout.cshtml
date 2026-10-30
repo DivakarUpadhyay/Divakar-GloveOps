@@ -31,6 +31,10 @@
                         <li class="nav-item"><a class="nav-link @Active("Tasks", "Delegation")" asp-controller="Tasks" asp-action="Delegation">Delegation</a></li>
                         <li class="nav-item"><a class="nav-link @Active("Integrations", "AskAi")" asp-controller="Integrations" asp-action="AskAi">Ask AI</a></li>
                         <li class="nav-item"><a class="nav-link @Active("Integrations", "Index")" asp-controller="Integrations" asp-action="Index">Integrations</a></li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item"><a class="nav-link @Active("Admin")" asp-controller="Admin" asp-action="Customers">Admin</a></li>
+                        }
                     </ul>
                     <div class="d-flex align-items-center gap-3 text-white-50 small">
                         <span><span class="text-white">@User.DisplayName()</span> · @User.RoleName()</span>
@@ -50,7 +54,7 @@
     </main>
 
     <footer class="container text-muted small py-3 border-top">
-        Divakar GloveOps — demo sample-request &amp; approval portal (.NET MVC · Dapper · SQL Server · jQuery · n8n · Dify · Power BI). All data is fictional.
+        Divakar GloveOps — demo sample-request &amp; approval portal (.NET MVC · Dapper · EF Core · SQL Server · jQuery · n8n · Dify · Power BI). All data is fictional.
     </footer>
 
     <form id="af-token" class="d-none">@Html.AntiForgeryToken()</form>
