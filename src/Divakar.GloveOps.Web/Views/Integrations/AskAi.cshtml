@@ -1,0 +1,48 @@
+@{
+    ViewData["Title"] = "Ask AI";
+    bool configured = ViewBag.DifyConfigured;
+}
+
+<h1 class="h3 mb-1">Glove Advisor <span class="badge text-bg-light align-middle">Dify · RAG</span></h1>
+<p class="text-muted">Answers come from the product spec sheets in the Dify knowledge base, with the source document named.</p>
+
+@if (!configured)
+{
+    <div class="alert alert-warning">
+        Dify is not configured yet. Create the "Glove Advisor" chat app (see <code>dify/README.md</code>), then run:<br />
+        <code>dotnet user-secrets set "Dify:ApiKey" "app-…" --project src/Divakar.GloveOps.Web</code>
+    </div>
+}
+
+<div class="chat mb-2" id="chat">
+    <div class="msg bot">Hi! Ask me about our gloves, e.g. “Which glove is suitable for handling chemotherapy drugs?” or “哪一款手套適合無塵室？”</div>
+</div>
+
+<form id="ask-form" class="d-flex gap-2">
+    <input id="question" class="form-control" maxlength="1000" placeholder="Ask about materials, standards, sizes…" autocomplete="off" @(configured ? "" : "disabled") />
+    <button class="btn btn-primary" @(configured ? "" : "disabled")>Ask</button>
+</form>
+
+@section Scripts {
+<script>
+    $(function () {
+        var conversationId = null;
+        function add(text, cls) {
+            var $m = $('<div class="msg"></div>').addClass(cls).text(text);   // .text() = no XSS
+            $('#chat').append($m).scrollTop($('#chat')[0].scrollHeight);
+            return $m;
+        }
+        $('#ask-form').on('submit', function (e) {
+            e.preventDefault();
+            var q = $.trim($('#question').val());
+            if (!q) return;
+            add(q, 'me');
+            $('#question').val('');
+            var $thinking = add('Thinking…', 'bot');
+            gloveops.postJson('@Url.Action("Ask")', { question: q, conversationId: conversationId })
+                .done(function (r) { conversationId = r.conversationId; $thinking.text(r.answer); })
+                .fail(function (xhr) { $thinking.addClass('text-danger').text(gloveops.errorText(xhr)); });
+        });
+    });
+</script>
+}

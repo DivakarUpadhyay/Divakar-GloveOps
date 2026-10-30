@@ -1,0 +1,35 @@
+@model IReadOnlyList<MyTaskItem>
+@{ ViewData["Title"] = "My tasks"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">My tasks <span class="badge text-bg-primary align-middle">@Model.Count</span></h1>
+    <a asp-action="Delegation" class="btn btn-outline-secondary">Going on leave? Set a delegate</a>
+</div>
+
+<div class="card p-3">
+    <table class="table table-hover mb-0">
+        <thead class="table-light">
+            <tr><th>Request</th><th>Step</th><th>Customer</th><th>Product</th><th class="text-end">Boxes</th><th>Required</th><th>Waiting since</th><th>Priority</th></tr>
+        </thead>
+        <tbody>
+        @foreach (var t in Model)
+        {
+            var priority = RequestRules.Priority(t.Qty, t.RequiredDate, DateTime.Today);
+            <tr>
+                <td><a asp-controller="SampleRequests" asp-action="Details" asp-route-id="@t.RequestId" class="fw-semibold">@t.RequestNo</a></td>
+                <td>@t.StepName @if (t.IsDelegated) { <span class="badge text-bg-info">for @t.ApproverName</span> }</td>
+                <td>@t.CustomerName</td>
+                <td>@t.ProductName</td>
+                <td class="text-end">@t.Qty.ToString("N0")</td>
+                <td>@t.RequiredDate.ToString("yyyy-MM-dd")</td>
+                <td class="small">@t.CreatedAt.ToString("yyyy-MM-dd HH:mm")</td>
+                <td><span class="badge @(priority == "High" ? "text-bg-danger" : priority == "Normal" ? "text-bg-secondary" : "text-bg-light")">@priority</span></td>
+            </tr>
+        }
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="8" class="text-center text-muted py-4">Nothing waiting for you. 🎉</td></tr>
+        }
+        </tbody>
+    </table>
+</div>

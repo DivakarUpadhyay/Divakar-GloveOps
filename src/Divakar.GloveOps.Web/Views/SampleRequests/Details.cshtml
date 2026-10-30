@@ -1,0 +1,128 @@
+@model SampleRequestDetail
+@{
+    var h = Model.Header;
+    ViewData["Title"] = h.RequestNo;
+    var me = User.UserId();
+    var myTask = Model.Tasks.FirstOrDefault(t => t.CanAct(me));
+    var canEdit = RequestRules.CanEdit(h, me);
+
+    // Route = the steps this request needs (step 3 only for large orders), mirrored from FlowStep
+    var route = new List<(int No, string Name)> { (1, "Sales Manager review"), (2, "QA spec check") };
+    if (RequestRules.IsLargeOrder(h.Qty)) route.Add((3, "Plant capacity check"));
+
+    string StepState(int no)
+    {
+        var last = Model.Tasks.LastOrDefault(t => t.StepNo == no);
+        if (last is null) return "";
+        return last.Status switch { "Approved" => "done", "Pending" => "current", "Rejected" or "SentBack" => "stopped", _ => "" };
+    }
+}
+
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <a asp-action="Index" class="small">&larr; Sample requests</a>
+        <h1 class="h3 mb-0"><span id="request-no">@h.RequestNo</span> <span class="badge fs-6 align-middle @StatusUi.Badge(h.Status)">@StatusUi.Label(h.Status)</span></h1>
+        <div class="text-muted">Requested by @h.ApplicantName on @h.CreatedAt.ToString("yyyy-MM-dd HH:mm")</div>
+    </div>
+    <div class="d-flex gap-2">
+        @if (canEdit)
+        {
+            <a asp-action="Edit" asp-route-id="@h.RequestId" class="btn btn-outline-primary">Edit</a>
+            <button id="btn-submit" class="btn btn-primary" data-id="@h.RequestId">
+                @(h.Status == RequestStatus.SentBack ? "Resubmit" : "Submit for approval")
+            </button>
+        }
+    </div>
+</div>
+
+<div class="steps mb-3">
+    @foreach (var s in route)
+    {
+        var last = Model.Tasks.LastOrDefault(t => t.StepNo == s.No);
+        <div class="step @StepState(s.No)">
+            <div class="fw-semibold">@s.No. @s.Name</div>
+            <div class="small text-muted">
+                @if (last is null) { <text>Not started</text> }
+                else
+                {
+                    @last.ApproverName
+                    @if (last.DelegateName is not null) { <text> (delegate: @last.DelegateName)</text> }
+                    <text> · @last.Status</text>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-7">
+        <div class="card p-3 mb-3">
+            <h2 class="h6">Request</h2>
+            <dl class="row mb-0">
+                <dt class="col-sm-4">Customer</dt><dd class="col-sm-8">@h.CustomerName (@h.Country)</dd>
+                <dt class="col-sm-4">Product</dt><dd class="col-sm-8">@h.ProductName<div class="small text-muted">@h.Sku · @h.Material · @h.Category</div></dd>
+                <dt class="col-sm-4">Producing plant</dt><dd class="col-sm-8">@h.PlantName</dd>
+                <dt class="col-sm-4">Size / boxes</dt><dd class="col-sm-8">@h.Size · @h.Qty.ToString("N0") boxes @if (RequestRules.IsLargeOrder(h.Qty)) { <span class="badge text-bg-info">Large order</span> }</dd>
+                <dt class="col-sm-4">Required date</dt><dd class="col-sm-8">@h.RequiredDate.ToString("yyyy-MM-dd")</dd>
+                <dt class="col-sm-4">Purpose</dt><dd class="col-sm-8">@(h.Purpose ?? "–")</dd>
+            </dl>
+        </div>
+
+        @if (myTask is not null)
+        {
+            <div class="card p-3 border border-primary" id="act-panel">
+                <h2 class="h6">Your decision — @myTask.StepName</h2>
+                <textarea id="comment" class="form-control mb-2" rows="2" maxlength="500" placeholder="Comment (required to reject or send back)"></textarea>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-success" data-act="Approve">Approve</button>
+                    <button class="btn btn-warning" data-act="SendBack">Send back</button>
+                    <button class="btn btn-outline-danger" data-act="Reject">Reject</button>
+                </div>
+                <div id="act-error" class="text-danger small mt-2"></div>
+            </div>
+        }
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card p-3">
+            <h2 class="h6">History (audit trail)</h2>
+            <ul class="timeline">
+                @foreach (var e in Model.History)
+                {
+                    <li>
+                        <div><b>@e.Action</b> by @e.UserName</div>
+                        <div class="small text-muted">@e.ActedAt.ToString("yyyy-MM-dd HH:mm")@(e.StepNo is null ? "" : $" · step {e.StepNo}")</div>
+                        @if (!string.IsNullOrEmpty(e.Comment)) { <div class="small fst-italic">“@e.Comment”</div> }
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    $(function () {
+        $('#act-panel [data-act]').on('click', function () {
+            var $btns = $('#act-panel button').prop('disabled', true);
+            gloveops.postJson('@Url.Action("Act", "Tasks")', {
+                taskId: @(myTask?.TaskId ?? 0),
+                action: $(this).data('act'),
+                comment: $('#comment').val()
+            }).done(function () {
+                location.reload();
+            }).fail(function (xhr) {
+                $('#act-error').text(gloveops.errorText(xhr));
+                $btns.prop('disabled', false);
+            });
+        });
+
+        $('#btn-submit').on('click', function () {
+            var $b = $(this).prop('disabled', true);
+            gloveops.postJson('@Url.Action("Submit")/' + $b.data('id'))
+                .done(function () { location.reload(); })
+                .fail(function (xhr) { alert(gloveops.errorText(xhr)); $b.prop('disabled', false); });
+        });
+    });
+</script>
+}

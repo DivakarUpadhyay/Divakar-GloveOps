@@ -1,0 +1,47 @@
+// GloveOps — DAX measures. Create each one in the _Measures table.
+
+// ---------- production & quality ----------
+Output Boxes = SUM ( FactProduction[OutputBoxes] )
+
+Defect Boxes = SUM ( FactProduction[DefectBoxes] )
+
+Defect Rate % = DIVIDE ( [Defect Boxes], [Output Boxes] )            // format as %
+
+Good Boxes = [Output Boxes] - [Defect Boxes]
+
+Downtime h = DIVIDE ( SUM ( FactProduction[DowntimeMin] ), 60 )
+
+Output YTD = TOTALYTD ( [Output Boxes], DimDate[Date] )
+
+Avg Daily Output per Line =
+AVERAGEX (
+    SUMMARIZE ( FactProduction, DimDate[Date], FactProduction[PlantKey], FactProduction[LineNumber] ),
+    CALCULATE ( [Output Boxes] )
+)
+
+// ---------- sales ----------
+Sales USD = SUM ( FactSales[AmountUSD] )
+
+Sales Boxes = SUM ( FactSales[Boxes] )
+
+Avg Price per Box = DIVIDE ( [Sales USD], [Sales Boxes] )
+
+Sales YTD = TOTALYTD ( [Sales USD], DimDate[Date] )
+
+Sales LY = CALCULATE ( [Sales USD], SAMEPERIODLASTYEAR ( DimDate[Date] ) )
+
+Sales vs LY % = DIVIDE ( [Sales USD] - [Sales LY], [Sales LY] )      // format as %
+
+Sales Rank by Country =
+RANKX ( ALL ( DimCustomer[Country] ), [Sales USD], , DESC, DENSE )
+
+// ---------- sample requests (live view) ----------
+Requests = COUNTROWS ( vSampleRequest )
+
+Approved Requests = CALCULATE ( [Requests], vSampleRequest[Status] = "Approved" )
+
+Approved % = DIVIDE ( [Approved Requests], [Requests] )
+
+Avg Lead Hours = AVERAGE ( vSampleRequest[LeadHours] )
+
+Requested Boxes = SUM ( vSampleRequest[Qty] )

@@ -1,0 +1,35 @@
+@model IReadOnlyList<AppUser>
+@{ ViewData["Title"] = "Sign in"; }
+
+<div class="row justify-content-center">
+    <div class="col-lg-9">
+        <h1 class="h3 mb-1">Sign in as a demo user</h1>
+        <p class="text-muted">Each role sees a different part of the approval flow. A real deployment would use Windows / Active Directory sign-in.</p>
+
+        <div class="row g-3">
+            @foreach (var u in Model)
+            {
+                <div class="col-sm-6 col-md-4">
+                    <form asp-action="Login" method="post">
+                        <input type="hidden" name="userName" value="@u.UserName" />
+                        <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+                        <button type="submit" class="card user-card w-100 text-start p-3 border-0">
+                            <div class="fw-semibold">@u.DisplayName</div>
+                            <div class="small text-muted">@u.Role · @u.UserName</div>
+                        </button>
+                    </form>
+                </div>
+            }
+        </div>
+
+        <div class="card mt-4 p-3 small">
+            <strong>Try the flow:</strong>
+            <ol class="mb-0">
+                <li><b>Anna (Sales)</b> creates and submits a sample request.</li>
+                <li><b>Kevin (Sales Manager)</b> approves it from <i>My tasks</i>.</li>
+                <li><b>Grace (QA)</b> approves the spec check. Requests of 10,000+ boxes also go to the <b>plant manager</b> of the product's plant.</li>
+                <li>On final approval the app calls the <b>n8n</b> webhook (see <i>Integrations</i>).</li>
+            </ol>
+        </div>
+    </div>
+</div>

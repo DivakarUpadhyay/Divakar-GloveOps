@@ -1,0 +1,77 @@
+@model SampleRequestForm
+@{
+    var isNew = Model.RequestId is null;
+    ViewData["Title"] = isNew ? "New sample request" : $"Edit {Model.RequestNo}";
+}
+
+<h1 class="h3 mb-3">@ViewData["Title"]</h1>
+
+<form method="post" asp-action="@(isNew ? "Create" : "Edit")" asp-route-id="@Model.RequestId" class="card p-4" id="request-form">
+    <div asp-validation-summary="All" class="alert alert-danger" role="alert"></div>
+
+    <div class="row g-3">
+        <div class="col-md-6">
+            <label asp-for="CustomerId" class="form-label"></label>
+            <select asp-for="CustomerId" asp-items="Model.Customers" class="form-select">
+                <option value="0">— select —</option>
+            </select>
+            <span asp-validation-for="CustomerId" class="text-danger small"></span>
+        </div>
+        <div class="col-md-6">
+            <label asp-for="ProductId" class="form-label"></label>
+            <select asp-for="ProductId" asp-items="Model.Products" class="form-select">
+                <option value="0">— select —</option>
+            </select>
+            <span asp-validation-for="ProductId" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Size" class="form-label"></label>
+            <select asp-for="Size" class="form-select">
+                @foreach (var s in RequestRules.Sizes) { <option value="@s">@s</option> }
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="Qty" class="form-label"></label>
+            <input asp-for="Qty" class="form-control" />
+            <span asp-validation-for="Qty" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3">
+            <label asp-for="RequiredDate" class="form-label"></label>
+            <input asp-for="RequiredDate" class="form-control" />
+            <span asp-validation-for="RequiredDate" class="text-danger small"></span>
+        </div>
+        <div class="col-md-3 d-flex align-items-end">
+            <div id="route-hint" class="small text-muted"></div>
+        </div>
+        <div class="col-12">
+            <label asp-for="Purpose" class="form-label"></label>
+            <textarea asp-for="Purpose" rows="3" class="form-control" placeholder="Tender, trial, qualification…"></textarea>
+            <div class="small text-muted"><span id="purpose-count">0</span>/500</div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2 mt-4">
+        <button type="submit" id="btn-save-draft" class="btn btn-outline-primary">Save draft</button>
+        <button type="submit" id="btn-save-submit" name="submit" value="true" class="btn btn-primary">Save &amp; submit for approval</button>
+        <a asp-action="@(isNew ? "Index" : "Details")" asp-route-id="@Model.RequestId" class="btn btn-link">Cancel</a>
+    </div>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $(function () {
+            var large = @RequestRules.LargeOrderBoxes;
+            // Show the approval route the request will take (same rule as FlowStep.MinQty)
+            function updateHint() {
+                var qty = parseInt($('#Qty').val(), 10) || 0;
+                var route = 'Sales Manager → QA' + (qty >= large ? ' → Plant Manager' : '');
+                $('#route-hint').html('Approval route:<br><b>' + route + '</b>');
+            }
+            function updateCount() { $('#purpose-count').text(($('#Purpose').val() || '').length); }
+            $('#Qty').on('input', updateHint);
+            $('#Purpose').on('input', updateCount);
+            updateHint(); updateCount();
+        });
+    </script>
+}

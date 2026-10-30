@@ -1,0 +1,68 @@
+{
+  "name": "GloveOps — daily production report (08:00)",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [{ "field": "cronExpression", "expression": "0 8 * * 1-5" }]
+        }
+      },
+      "id": "b2f0c6c2-0001-4d1e-9a01-000000000001",
+      "name": "Every weekday 08:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT p.PlantName, SUM(f.OutputBoxes) AS OutputBoxes, SUM(f.DefectBoxes) AS DefectBoxes,\n       CAST(100.0 * SUM(f.DefectBoxes) / NULLIF(SUM(f.OutputBoxes), 0) AS DECIMAL(5,2)) AS DefectPct\nFROM bi.FactProduction f\nJOIN bi.DimPlant p ON p.PlantKey = f.PlantKey\nWHERE f.DateKey = (SELECT MAX(DateKey) FROM bi.FactProduction)\nGROUP BY p.PlantName\nORDER BY p.PlantName;"
+      },
+      "id": "b2f0c6c2-0002-4d1e-9a01-000000000002",
+      "name": "SQL Server: latest day output",
+      "type": "n8n-nodes-base.microsoftSql",
+      "typeVersion": 1.1,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build one HTML table from all plant rows.\nconst rows = $input.all().map(i => i.json);\nconst tr = rows.map(r => `<tr><td>${r.PlantName}</td><td align=right>${r.OutputBoxes}</td><td align=right>${r.DefectBoxes}</td><td align=right>${r.DefectPct}%</td></tr>`).join('');\nconst worst = rows.reduce((a, b) => (Number(b.DefectPct) > Number(a.DefectPct) ? b : a), rows[0] || {});\nreturn [{ json: {\n  subject: `Daily production: ${rows.reduce((s, r) => s + r.OutputBoxes, 0)} boxes, highest defect ${worst.PlantName} ${worst.DefectPct}%`,\n  html: `<table border=1 cellpadding=4><tr><th>Plant</th><th>Output</th><th>Defects</th><th>Defect %</th></tr>${tr}</table>`\n} }];"
+      },
+      "id": "b2f0c6c2-0003-4d1e-9a01-000000000003",
+      "name": "Build HTML report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "fromEmail": "gloveops@example.com",
+        "toEmail": "managers@example.com",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "html",
+        "html": "={{ $json.html }}",
+        "options": {}
+      },
+      "id": "b2f0c6c2-0004-4d1e-9a01-000000000004",
+      "name": "Email managers",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [720, 0],
+      "disabled": true
+    }
+  ],
+  "connections": {
+    "Every weekday 08:00": {
+      "main": [[{ "node": "SQL Server: latest day output", "type": "main", "index": 0 }]]
+    },
+    "SQL Server: latest day output": {
+      "main": [[{ "node": "Build HTML report", "type": "main", "index": 0 }]]
+    },
+    "Build HTML report": {
+      "main": [[{ "node": "Email managers", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "pinData": {}
+}

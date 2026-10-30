@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Divakar GloveOps</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    @{ var signedIn = User.Identity?.IsAuthenticated == true;
+       var ctrl = ViewContext.RouteData.Values["controller"]?.ToString();
+       var act = ViewContext.RouteData.Values["action"]?.ToString();
+       string Active(string c, string? a = null) => c == ctrl && (a is null || a == act) ? "active" : ""; }
+
+    <nav class="navbar navbar-expand-lg navbar-dark go-navbar mb-4">
+        <div class="container">
+            <a class="navbar-brand fw-semibold" asp-controller="Home" asp-action="Index">
+                <span class="go-logo">G</span> Divakar <span class="fw-light">GloveOps</span>
+            </a>
+            @if (signedIn)
+            {
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#nav" aria-controls="nav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="nav">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item"><a class="nav-link @Active("Home")" asp-controller="Home" asp-action="Index">Dashboard</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("SampleRequests")" asp-controller="SampleRequests" asp-action="Index">Sample requests</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Tasks", "Index")" asp-controller="Tasks" asp-action="Index">My tasks</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Tasks", "Delegation")" asp-controller="Tasks" asp-action="Delegation">Delegation</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Integrations", "AskAi")" asp-controller="Integrations" asp-action="AskAi">Ask AI</a></li>
+                        <li class="nav-item"><a class="nav-link @Active("Integrations", "Index")" asp-controller="Integrations" asp-action="Index">Integrations</a></li>
+                    </ul>
+                    <div class="d-flex align-items-center gap-3 text-white-50 small">
+                        <span><span class="text-white">@User.DisplayName()</span> · @User.RoleName()</span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="m-0">
+                            <button class="btn btn-sm btn-outline-light">Switch user</button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </nav>
+
+    <main class="container pb-5">
+        @if (TempData["Ok"] is string ok) { <div class="alert alert-success">@ok</div> }
+        @if (TempData["Error"] is string err) { <div class="alert alert-danger">@err</div> }
+        @RenderBody()
+    </main>
+
+    <footer class="container text-muted small py-3 border-top">
+        Divakar GloveOps — demo sample-request &amp; approval portal (.NET MVC · Dapper · SQL Server · jQuery · n8n · Dify · Power BI). All data is fictional.
+    </footer>
+
+    <form id="af-token" class="d-none">@Html.AntiForgeryToken()</form>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

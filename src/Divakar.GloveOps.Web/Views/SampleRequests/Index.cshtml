@@ -1,0 +1,64 @@
+@model RequestListViewModel
+@{ ViewData["Title"] = "Sample requests"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h3 mb-0">Sample requests</h1>
+    <a class="btn btn-primary" asp-action="Create">+ New sample request</a>
+</div>
+
+<form method="get" class="card p-3 mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small">Search (server)</label>
+            <input name="search" value="@Model.Search" class="form-control" placeholder="Request no, customer or product" />
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small">Status</label>
+            <select name="status" class="form-select">
+                <option value="">All</option>
+                @foreach (var s in RequestStatus.All)
+                {
+                    <option value="@s" selected="@(s == Model.Status)">@StatusUi.Label(s)</option>
+                }
+            </select>
+        </div>
+        <div class="col-md-2 form-check ms-2 mb-2">
+            <input class="form-check-input" type="checkbox" name="mine" value="true" id="mine" checked="@Model.MineOnly" />
+            <label class="form-check-label" for="mine">Mine only</label>
+        </div>
+        <div class="col-md-2"><button class="btn btn-outline-primary w-100">Apply</button></div>
+    </div>
+</form>
+
+<div class="card p-3">
+    <input class="form-control form-control-sm mb-2" style="max-width:280px" placeholder="Quick filter (jQuery)…" data-filter-table="#requests" />
+    <div class="table-responsive">
+        <table class="table table-hover mb-0" id="requests">
+            <thead class="table-light">
+                <tr><th>No.</th><th>Customer</th><th>Product</th><th>Size</th><th class="text-end">Boxes</th><th>Required</th><th>Status</th><th>Applicant</th></tr>
+            </thead>
+            <tbody>
+            @foreach (var r in Model.Items)
+            {
+                <tr>
+                    <td><a asp-action="Details" asp-route-id="@r.RequestId" class="fw-semibold">@r.RequestNo</a></td>
+                    <td>@r.CustomerName<div class="small text-muted">@r.Country</div></td>
+                    <td>@r.ProductName<div class="small text-muted">@r.Sku · @r.Material</div></td>
+                    <td>@r.Size</td>
+                    <td class="text-end">@r.Qty.ToString("N0")</td>
+                    <td>@r.RequiredDate.ToString("yyyy-MM-dd")</td>
+                    <td>
+                        <span class="badge @StatusUi.Badge(r.Status)">@StatusUi.Label(r.Status)</span>
+                        @if (r.CurrentStepName is not null) { <div class="small text-muted">@r.CurrentStepName</div> }
+                    </td>
+                    <td class="small">@r.ApplicantName</td>
+                </tr>
+            }
+            @if (Model.Items.Count == 0)
+            {
+                <tr><td colspan="8" class="text-center text-muted py-4">No sample requests match.</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -1,0 +1,22 @@
+@model DelegationForm
+@{ ViewData["Title"] = "Delegation"; }
+
+<h1 class="h3 mb-1">Delegate my approvals (代理人)</h1>
+<p class="text-muted">While you're on leave, your delegate can approve your tasks. Tasks already waiting are handed over too if the leave starts today.</p>
+
+<form method="post" class="card p-4" style="max-width:640px">
+    <div asp-validation-summary="All" class="alert alert-danger"></div>
+    <div class="mb-3">
+        <label asp-for="DelegateUserId" class="form-label"></label>
+        <select asp-for="DelegateUserId" asp-items="Model.Users" class="form-select">
+            <option value="0">— select —</option>
+        </select>
+    </div>
+    <div class="row g-3 mb-3">
+        <div class="col"><label asp-for="FromDate" class="form-label">From</label><input asp-for="FromDate" class="form-control" /></div>
+        <div class="col"><label asp-for="ToDate" class="form-label">To</label><input asp-for="ToDate" class="form-control" /></div>
+    </div>
+    <button class="btn btn-primary">Save delegation</button>
+</form>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

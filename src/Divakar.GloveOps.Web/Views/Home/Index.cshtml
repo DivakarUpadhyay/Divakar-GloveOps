@@ -1,0 +1,59 @@
+@model DashboardData
+@{
+    ViewData["Title"] = "Dashboard";
+    int Count(string s) => Model.ByStatus.FirstOrDefault(x => x.Status == s)?.Total ?? 0;
+    var total = Model.ByStatus.Sum(x => x.Total);
+    var maxBoxes = Math.Max(1, Model.ByMaterial.Select(m => m.Boxes).DefaultIfEmpty(0).Max());
+    var maxCountry = Math.Max(1, Model.TopCountries.Select(c => c.Requests).DefaultIfEmpty(0).Max());
+    int myTasks = ViewBag.MyTaskCount;
+}
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h1 class="h3 mb-0">Good day, @User.DisplayName()</h1>
+        <div class="text-muted">Sample requests across all plants</div>
+    </div>
+    <div class="d-flex gap-2">
+        <a class="btn btn-outline-secondary" asp-controller="Tasks" asp-action="Index">
+            My tasks <span class="badge text-bg-primary">@myTasks</span>
+        </a>
+        <a class="btn btn-primary" asp-controller="SampleRequests" asp-action="Create">+ New sample request</a>
+    </div>
+</div>
+
+<div class="row g-3 mb-3">
+    <div class="col-6 col-lg"><div class="card kpi p-3"><div class="label">Total</div><div class="value">@total</div></div></div>
+    <div class="col-6 col-lg"><div class="card kpi p-3"><div class="label">In approval</div><div class="value text-primary">@Count(RequestStatus.InApproval)</div></div></div>
+    <div class="col-6 col-lg"><div class="card kpi p-3"><div class="label">Sent back</div><div class="value text-warning">@Count(RequestStatus.SentBack)</div></div></div>
+    <div class="col-6 col-lg"><div class="card kpi p-3"><div class="label">Approved</div><div class="value text-success">@Count(RequestStatus.Approved)</div></div></div>
+    <div class="col-6 col-lg"><div class="card kpi p-3"><div class="label">Avg lead time</div><div class="value">@(Model.AvgLeadHours?.ToString("0.#") ?? "–")<small class="fs-6 text-muted"> h</small></div></div></div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card p-3 h-100">
+            <h2 class="h6">Boxes requested by material</h2>
+            @foreach (var m in Model.ByMaterial)
+            {
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small"><span>@m.Material</span><span>@m.Boxes.ToString("N0")</span></div>
+                    <div class="bar" style="width:@(m.Boxes * 100 / maxBoxes)%"></div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3 h-100">
+            <h2 class="h6">Top customer countries</h2>
+            @foreach (var c in Model.TopCountries)
+            {
+                <div class="mb-2">
+                    <div class="d-flex justify-content-between small"><span>@c.Country</span><span>@c.Requests</span></div>
+                    <div class="bar" style="width:@(c.Requests * 100 / maxCountry)%; opacity:.7"></div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<p class="text-muted small mt-3">Full production &amp; sales analytics are in the Power BI report (see <code>powerbi/README.md</code>).</p>

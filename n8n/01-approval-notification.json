@@ -1,0 +1,95 @@
+{
+  "name": "GloveOps — sample request approved",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "gloveops-approved",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "a1f0c6c2-0001-4d1e-9a01-000000000001",
+      "name": "Webhook: request approved",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 0],
+      "webhookId": "gloveops-approved"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Check the shared key, then shape the plant notification.\nconst SHARED_KEY = 'change-me-gloveops';   // must match N8n:SharedKey in GloveOps\nconst req = $input.first().json;\nif ((req.headers['x-gloveops-key'] || '') !== SHARED_KEY) {\n  throw new Error('Invalid X-GloveOps-Key');\n}\nconst r = req.body;\nconst high = r.priority === 'High';\nreturn [{ json: {\n  ...r,\n  subject: `${high ? '[HIGH] ' : ''}Sample ${r.requestNo} approved: ${r.qty} boxes ${r.sku} (${r.size})`,\n  message: `Plant: ${r.plant}\\nCustomer: ${r.customer} (${r.country})\\nProduct: ${r.product}\\nQty: ${r.qty} boxes, size ${r.size}\\nRequired by: ${String(r.requiredDate).slice(0, 10)}\\nApproved by: ${r.approvedBy}`\n} }];"
+      },
+      "id": "a1f0c6c2-0002-4d1e-9a01-000000000002",
+      "name": "Check key + build message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "fromEmail": "gloveops@example.com",
+        "toEmail": "plant-planning@example.com",
+        "subject": "={{ $json.subject }}",
+        "emailFormat": "text",
+        "text": "={{ $json.message }}",
+        "options": {}
+      },
+      "id": "a1f0c6c2-0003-4d1e-9a01-000000000003",
+      "name": "Email plant (enable after adding SMTP)",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [480, -160],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://localhost:5080/api/integrations/n8n-callback",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            { "name": "X-GloveOps-Key", "value": "change-me-gloveops" }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ requestNo: $json.requestNo, status: 'PlantNotified', message: $json.subject }) }}",
+        "options": {}
+      },
+      "id": "a1f0c6c2-0004-4d1e-9a01-000000000004",
+      "name": "Call back GloveOps",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [480, 0]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, requestNo: $('Check key + build message').first().json.requestNo }) }}",
+        "options": {}
+      },
+      "id": "a1f0c6c2-0005-4d1e-9a01-000000000005",
+      "name": "Respond to GloveOps",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [720, 0]
+    }
+  ],
+  "connections": {
+    "Webhook: request approved": {
+      "main": [[{ "node": "Check key + build message", "type": "main", "index": 0 }]]
+    },
+    "Check key + build message": {
+      "main": [[
+        { "node": "Call back GloveOps", "type": "main", "index": 0 },
+        { "node": "Email plant (enable after adding SMTP)", "type": "main", "index": 0 }
+      ]]
+    },
+    "Call back GloveOps": {
+      "main": [[{ "node": "Respond to GloveOps", "type": "main", "index": 0 }]]
+    }
+  },
+  "settings": { "executionOrder": "v1" },
+  "active": false,
+  "pinData": {}
+}
