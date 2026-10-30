@@ -18,6 +18,9 @@ body { background: var(--go-bg); }
 .kpi .value { font-size: 2rem; font-weight: 600; line-height: 1.1; }
 .kpi .label { color: #6b7280; font-size: .85rem; text-transform: uppercase; letter-spacing: .04em; }
 
+/* asp-validation-summary renders an empty box until there are errors */
+.validation-summary-valid { display: none; }
+
 .table > :not(caption) > * > * { vertical-align: middle; }
 .table a { text-decoration: none; }
 

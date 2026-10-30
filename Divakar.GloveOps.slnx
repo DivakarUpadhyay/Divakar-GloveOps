@@ -4,6 +4,7 @@
     <Project Path="src/Divakar.GloveOps.Web/Divakar.GloveOps.Web.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/Divakar.GloveOps.E2E/Divakar.GloveOps.E2E.csproj" />
     <Project Path="tests/Divakar.GloveOps.Tests/Divakar.GloveOps.Tests.csproj" />
   </Folder>
 </Solution>

@@ -64,6 +64,12 @@ Different SQL Server? Set the connection string:
 
 Tests: `dotnet test` (26 tests: rules, approval service, n8n notifier, and end-to-end stored-procedure tests that skip if the database isn't available).
 
+**End-to-end test in a visible Chrome window:** `run-e2e.bat`. Playwright for .NET drives your installed Google Chrome (no browser download) with a fresh temporary profile. It resets the demo database, starts the app on port 5081, and runs two stories:
+1. **Large request:** login page styled before sign-in → dashboard → client-side validation (qty 0) → jQuery route hint adds the Plant Manager → submit → Kevin's send back is refused without a comment, then accepted → Anna edits and resubmits → Kevin, Grace and the Tainan plant manager approve → audit trail → integration log → approved list.
+2. **Delegation:** Kevin delegates to Mei → Mei sees "for Kevin Chen" tasks → approves on his behalf.
+
+Each step saves a screenshot to [`docs/screenshots/`](docs/screenshots). The app and Chrome are closed afterwards. E2E tests are opt-in (`GLOVEOPS_E2E=1`), so a plain `dotnet test` and the GitHub build skip them. Add `GLOVEOPS_E2E_HEADLESS=1` to run without a window.
+
 Optional integrations (keys go in **user secrets**, never in Git): see [`n8n/README.md`](n8n/README.md) and [`dify/README.md`](dify/README.md).
 
 ## Demo script (about 5 minutes, for the interview)
@@ -83,7 +89,8 @@ Optional integrations (keys go in **user secrets**, never in Git): see [`n8n/REA
 database/        01 schema · 02 procedures · 03 seed · 04 Power BI star schema · 00 run-all
 src/Divakar.GloveOps.Core/   Models · Workflow (rules, ApprovalService) · Data (Dapper) · Integrations (n8n, Dify)
 src/Divakar.GloveOps.Web/    MVC controllers, Razor views, jQuery (wwwroot/js/site.js)
-tests/Divakar.GloveOps.Tests/  xUnit: unit + database end-to-end tests
+tests/Divakar.GloveOps.Tests/  xUnit: unit + database tests
+tests/Divakar.GloveOps.E2E/    Playwright browser tests (run-e2e.bat), screenshots in docs/screenshots
 n8n/ · dify/ · automation360/ · powerbi/   one folder per integration, each with a README
 ```
 
