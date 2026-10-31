@@ -80,6 +80,12 @@ npx n8n import:workflow --separate --input=n8n
    - `n8n-callback · Received · SR-… PlantNotified`, n8n calling back
 5. In n8n → **Executions** you can see each run with input and output per node.
 
+### Verified (2026-10-31, n8n 2.8.4)
+- Both JSON files import with `n8n import:workflow`. In n8n 2.x, "Activate" is called **Publish** (`n8n publish:workflow --id=<id>`, then restart n8n).
+- Without `X-GloveOps-Key` the Code node stops the run ("Invalid X-GloveOps-Key"). With the key, the full loop logged in GloveOps:
+  `n8n-webhook · Sent · HTTP 200 {"ok":true,"requestNo":"SR-2026-00009"}` and `n8n-callback · Received · SR-2026-00009: PlantNotified …`.
+- Note: when a run fails inside n8n, the webhook still answers HTTP 200 with an empty body. That's why GloveOps treats n8n's **callback** ("Received") as the real confirmation, not the webhook reply. Check failed runs in n8n → **Executions**.
+
 ## 4. Daily report (optional)
 Open workflow 02 → the SQL Server node → **Credentials → Create new**: host `localhost`, port `1433` (enable TCP/IP for the instance in SQL Server Configuration Manager), database `DivakarGloveOps`, and a SQL login with read access to the `bi` schema. Click **Test workflow** to run it immediately.
 

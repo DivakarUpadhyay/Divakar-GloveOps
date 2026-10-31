@@ -61,6 +61,7 @@ cd dify/docker && cp .env.example .env && docker compose up -d
 Then:
 1. **Settings → Model Provider:** add a provider (e.g. OpenAI, Anthropic or Azure OpenAI) with your API key.
 2. **Knowledge → Create Knowledge:** upload every file in `knowledge/`.
+   - **Free Sandbox plan:** only **one file** per knowledge base. Upload [`GloveOps-Knowledge-AllInOne.md`](GloveOps-Knowledge-AllInOne.md) instead (all 7 documents in one file) and set the chunk **delimiter to `---`**, so each product sheet becomes one chunk. Sandbox also includes 200 free message credits with Dify-provided models (no OpenAI key needed). This is how the live demo app was set up on 2026-10-30.
    - Chunking: *General*, max chunk length 500 tokens, overlap 50.
    - Index: *High quality* (embedding model), retrieval *Hybrid search* (vector + keyword), Top K = 3.
 3. **Studio → Create app → Chatbot**, name it `Glove Advisor`.
